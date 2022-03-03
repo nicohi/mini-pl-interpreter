@@ -210,13 +210,13 @@ Token scanToken() {
     }
     break;
   case 'i':
-    if (matchS("n ")) {
-      scanner.current--;
-      return makeToken(TokenType::IN);
-    }
     if (matchS("nt ")) {
       scanner.current--;
       return makeToken(TokenType::INT);
+    }
+    if (matchS("n ")) {
+      scanner.current--;
+      return makeToken(TokenType::IN);
     }
     break;
   case 'd':
