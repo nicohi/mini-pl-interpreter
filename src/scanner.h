@@ -1,21 +1,25 @@
-#ifndef TOKENS_H_
-#define TOKENS_H_
+#ifndef SCANNER_H_
+#define SCANNER_H_
+
+#include "string"
+
+namespace Scanner {
 
 enum class TokenType {
   // Single-character tokens
-  LEFT_PAREN,  // (
-  RIGHT_PAREN, // )
-  LEFT_BRACE,  // [
-  RIGHT_BRACE, // ]
-  SEMICOLON,   // ;
-  COLON,       // :
-  MINUS,       // -
-  PLUS,        // +
-  SLASH,       // /
-  ASTERISK,    // *
-  EQUAL,       // =
-  AND,         // &
-  NOT,         // !
+  LEFT_PAREN = 0, // (
+  RIGHT_PAREN,    // )
+  LEFT_BRACE,     // [
+  RIGHT_BRACE,    // ]
+  SEMICOLON,      // ;
+  COLON,          // :
+  MINUS,          // -
+  PLUS,           // +
+  SLASH,          // /
+  ASTERISK,       // *
+  EQUAL,          // =
+  AND,            // &
+  NOT,            // !
 
   // 2-character tokens
   ASSIGN, // :=
@@ -43,6 +47,20 @@ enum class TokenType {
 
   // Extra tokens
   ERROR,
-  EOF,
+  SCAN_EOF,
 };
-#endif // TOKENS_H_
+
+struct Token {
+  TokenType type;
+  const char *start;
+  int length;
+  int line;
+};
+
+void init(const std::string source);
+std::string getName(Token t);
+Token scanToken();
+
+} // namespace Scanner
+
+#endif // SCANNER_H_

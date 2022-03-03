@@ -1,10 +1,35 @@
-#include "tokens.h"
+#include "interpreter.h"
+#include <cerrno>
+#include <fstream>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
-static void interpret(string l) {
-  cout << "Interpreting line: \"" + l + "\"" << std::endl;
+std::string read_file(string path) {
+  std::ifstream in(path, std::ios::in | std::ios::binary);
+  if (in) {
+    std::string contents;
+    in.seekg(0, std::ios::end);
+    contents.resize(in.tellg());
+    in.seekg(0, std::ios::beg);
+    in.read(&contents[0], contents.size());
+    in.close();
+    return (contents);
+  }
+  throw(errno);
+}
+
+static int runFile(string path) {
+  string source;
+  try {
+    source = read_file(path);
+  } catch (int e) {
+    cerr << "Failed to read file: " << path << endl;
+    return errno;
+  }
+  Interpreter::interpret(source);
+  return errno;
 }
 
 static void repl() {
@@ -14,14 +39,9 @@ static void repl() {
     cin >> line;
     if (cin.eof())
       break;
-    interpret(line);
+    Interpreter::interpret(line);
   }
   cout << "\r";
-}
-
-static void runFile(string path) {
-  cout << path;
-  cout << std::endl;
 }
 
 static void printHelp() {
@@ -36,12 +56,12 @@ int main(int argc, char *argv[]) {
   if (argc == 1)
     repl();
   else if (argc == 2) {
-    string arg2 = argv[1];
-    if (arg2.compare("-h") == 0)
+    string arg1 = argv[1];
+    if (arg1.compare("-h") == 0)
       goto end; // ↑_(ΦwΦ;)Ψ there is no help
-    if (arg2.compare("--help") == 0)
-      goto end; // (｀㊥益㊥)Ψ  O̶H̶ ̴L̶A̴W̴D̵
-    runFile(arg2);
+    if (arg1.compare("--help") == 0)
+      goto end; // (｀㊥益㊥)Ψ
+    return runFile(arg1);
   } else
   end:
     printHelp();
