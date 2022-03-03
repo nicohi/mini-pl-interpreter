@@ -5,50 +5,44 @@
 
 namespace Scanner {
 
-enum class TokenType {
-  // Single-character tokens
-  LEFT_PAREN = 0, // (
-  RIGHT_PAREN,    // )
-  LEFT_BRACE,     // [
-  RIGHT_BRACE,    // ]
-  SEMICOLON,      // ;
-  COLON,          // :
-  MINUS,          // -
-  PLUS,           // +
-  SLASH,          // /
-  ASTERISK,       // *
-  EQUAL,          // =
-  AND,            // &
-  NOT,            // !
+#define TOKEN_TYPES(F)                                                         \
+  F(LEFT_PAREN, "(")                                                           \
+  F(RIGHT_PAREN, ")")                                                          \
+  F(LEFT_BRACE, "[")                                                           \
+  F(RIGHT_BRACE, "]")                                                          \
+  F(SEMICOLON, ";")                                                            \
+  F(COLON, ":")                                                                \
+  F(MINUS, "-")                                                                \
+  F(PLUS, "+")                                                                 \
+  F(SLASH, "/")                                                                \
+  F(ASTERISK, "*")                                                             \
+  F(EQUAL, "=")                                                                \
+  F(AND, "&")                                                                  \
+  F(NOT, "!")                                                                  \
+  F(ASSIGN, ":=")                                                              \
+  F(RANGE, "..")                                                               \
+  F(VAR, "var")                                                                \
+  F(FOR, "for")                                                                \
+  F(END, "end")                                                                \
+  F(IN, "in")                                                                  \
+  F(DO, "do")                                                                  \
+  F(READ, "read")                                                              \
+  F(PRINT, "print")                                                            \
+  F(INT, "int")                                                                \
+  F(STRING, "string")                                                          \
+  F(BOOL, "bool")                                                              \
+  F(ASSERT, "assert")                                                          \
+  F(COMMENT, "// ... \n | /* ... */")                                          \
+  F(IDENTIFIER, "letter ( digit | _ | letter )*")                              \
+  F(STRING_LIT, "character character*")                                        \
+  F(INTEGER_LIT, "digit+")                                                     \
+  F(BOOLEAN_LIT, "true | false")                                               \
+  F(ERROR, "")                                                                 \
+  F(SCAN_EOF, "")
 
-  // 2-character tokens
-  ASSIGN, // :=
-  RANGE,  // ..
-
-  // Reserved keywords
-  VAR,    // "var"
-  FOR,    // "for"
-  END,    // "end"
-  IN,     // "in"
-  DO,     // "do"
-  READ,   // "read"
-  PRINT,  // "print"
-  INT,    // "int"
-  STRING, // "string"
-  BOOL,   // "bool"
-  ASSERT, // "assert"
-
-  // Multi-character tokens and literals
-  COMMENT,     // "// ... \n" | "/* ... */"
-  IDENTIFIER,  // letter ( digit | "_" | letter )*
-  STRING_LIT,  // """ character character* """
-  INTEGER_LIT, // digit+
-  BOOLEAN_LIT, // "true" | "false"
-
-  // Extra tokens
-  ERROR,
-  SCAN_EOF,
-};
+#define F(name, desc) name,
+enum class TokenType { TOKEN_TYPES(F) };
+#undef F
 
 struct Token {
   TokenType type;
