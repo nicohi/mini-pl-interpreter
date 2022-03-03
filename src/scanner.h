@@ -10,8 +10,6 @@ namespace Scanner {
   F(RIGHT_PAREN, ")")                                                          \
   F(LEFT_BRACE, "[")                                                           \
   F(RIGHT_BRACE, "]")                                                          \
-  F(SEMICOLON, ";")                                                            \
-  F(COLON, ":")                                                                \
   F(MINUS, "-")                                                                \
   F(PLUS, "+")                                                                 \
   F(SLASH, "/")                                                                \
@@ -19,16 +17,18 @@ namespace Scanner {
   F(EQUAL, "=")                                                                \
   F(AND, "&")                                                                  \
   F(NOT, "!")                                                                  \
+  F(SEMICOLON, ";")                                                            \
+  F(COLON, ":")                                                                \
   F(ASSIGN, ":=")                                                              \
   F(RANGE, "..")                                                               \
   F(VAR, "var")                                                                \
   F(FOR, "for")                                                                \
   F(END, "end")                                                                \
   F(IN, "in")                                                                  \
+  F(INT, "int")                                                                \
   F(DO, "do")                                                                  \
   F(READ, "read")                                                              \
   F(PRINT, "print")                                                            \
-  F(INT, "int")                                                                \
   F(STRING, "string")                                                          \
   F(BOOL, "bool")                                                              \
   F(ASSERT, "assert")                                                          \
@@ -47,6 +47,7 @@ enum class TokenType { TOKEN_TYPES(F) };
 struct Token {
   TokenType type;
   const char *start;
+  const char *message;
   int length;
   int line;
 };
