@@ -74,37 +74,37 @@ public:
 
 class TreeNode {
 public:
-  virtual void accept(TreeWalker *t) = 0;
+  virtual void accept(TreeWalker *t) const = 0;
 };
 
 class Opnd : public TreeNode {
 public:
-  void accept(TreeWalker *t) { t->visitOpnd(this); };
+  void accept(TreeWalker *t) const override { t->visitOpnd(this); };
 };
 class Int : public Opnd {
 public:
   Scanner::Token value;
   Int(Scanner::Token v) { this->value = v; }
-  void accept(TreeWalker *t) { t->visitInt(this); };
+  void accept(TreeWalker *t) const override { t->visitInt(this); };
 };
 class String : public Opnd {
 public:
   Scanner::Token value;
   String(Scanner::Token v) { this->value = v; }
-  void accept(TreeWalker *t) { t->visitString(this); };
+  void accept(TreeWalker *t) const override { t->visitString(this); };
 };
 class Ident : public Opnd {
 public:
   Scanner::Token ident;
   Ident(Scanner::Token v) { this->ident = v; }
-  void accept(TreeWalker *t) { t->visitIdent(this); };
+  void accept(TreeWalker *t) const override { t->visitIdent(this); };
 };
 class Expr : public Opnd {
 public:
   Opnd *left;
   Scanner::Token op;
   Opnd *right;
-  void accept(TreeWalker *t) { t->visitExpr(this); };
+  void accept(TreeWalker *t) const override { t->visitExpr(this); };
 };
 class Binary : public Expr {
 public:
@@ -113,7 +113,7 @@ public:
     this->op = op;
     this->right = &right;
   }
-  void accept(TreeWalker *t) { t->visitBinary(this); };
+  void accept(TreeWalker *t) const override { t->visitBinary(this); };
 };
 class Unary : public Expr {
 public:
@@ -121,24 +121,24 @@ public:
     this->op = op;
     this->right = &right;
   }
-  void accept(TreeWalker *t) { t->visitUnary(this); };
+  void accept(TreeWalker *t) const override { t->visitUnary(this); };
 };
 class Single : public Expr {
 public:
   Single(Parser::Opnd right) { this->right = &right; }
-  void accept(TreeWalker *t) { t->visitSingle(this); };
+  void accept(TreeWalker *t) const override { t->visitSingle(this); };
 };
-class Stmt {
+class Stmt : public TreeNode {
 public:
   std::string info;
   Stmt() { info = "dummy statement"; }
-  void accept(TreeWalker *t) { t->visitStmt(this); };
+  void accept(TreeWalker *t) const override { t->visitStmt(this); };
 };
-class Stmts {
+class Stmts : public TreeNode {
 public:
   std::list<Stmt> stmts;
   void append(Stmt s) { stmts.push_back(s); }
-  void accept(TreeWalker *t) { t->visitStmts(this); };
+  void accept(TreeWalker *t) const override { t->visitStmts(this); };
 };
 class Var : public Stmt {
 public:
@@ -146,7 +146,7 @@ public:
   Scanner::Token type;
   Expr expr;
   Var() { info = "Var"; }
-  void accept(TreeWalker *t) { t->visitVar(this); };
+  void accept(TreeWalker *t) const override { t->visitVar(this); };
 };
 class Assign : public Stmt {
 public:
@@ -157,7 +157,7 @@ public:
     this->expr = e;
     info = "Assign";
   }
-  void accept(TreeWalker *t) { t->visitAssign(this); };
+  void accept(TreeWalker *t) const override { t->visitAssign(this); };
 };
 class For : public Stmt {
 public:
@@ -172,7 +172,7 @@ public:
     this->body = b;
     info = "For";
   }
-  void accept(TreeWalker *t) { t->visitFor(this); };
+  void accept(TreeWalker *t) const override { t->visitFor(this); };
 };
 class Read : public Stmt {
 public:
@@ -181,13 +181,13 @@ public:
     this->ident = i;
     info = "Read";
   }
-  void accept(TreeWalker *t) { t->visitRead(this); };
+  void accept(TreeWalker *t) const override { t->visitRead(this); };
 };
 class Print : public Stmt {
 public:
   Expr expr;
   Print() { info = "Print"; }
-  void accept(TreeWalker *t) { t->visitPrint(this); };
+  void accept(TreeWalker *t) const override { t->visitPrint(this); };
 };
 class Assert : public Stmt {
 public:
@@ -196,7 +196,7 @@ public:
     this->expr = e;
     info = "Assert";
   }
-  void accept(TreeWalker *t) { t->visitAssert(this); };
+  void accept(TreeWalker *t) const override { t->visitAssert(this); };
 };
 
 Stmts program;
@@ -376,20 +376,19 @@ static Stmt statement() {
   if (isCurrent(Scanner::TokenType::COMMENT)) {
     advance();
     return statement();
-  }
-  if (isCurrent(Scanner::TokenType::VAR))
+  } else if (isCurrent(Scanner::TokenType::VAR)) {
     s = var();
-  else if (isCurrent(Scanner::TokenType::IDENTIFIER))
+  } else if (isCurrent(Scanner::TokenType::IDENTIFIER)) {
     s = assign();
-  else if (isCurrent(Scanner::TokenType::FOR))
+  } else if (isCurrent(Scanner::TokenType::FOR)) {
     s = forLoop();
-  else if (isCurrent(Scanner::TokenType::READ))
+  } else if (isCurrent(Scanner::TokenType::READ)) {
     s = read();
-  else if (isCurrent(Scanner::TokenType::PRINT))
+  } else if (isCurrent(Scanner::TokenType::PRINT)) {
     s = print();
-  else if (isCurrent(Scanner::TokenType::ASSERT))
+  } else if (isCurrent(Scanner::TokenType::ASSERT)) {
     s = assert();
-  else
+  } else
     exitPanic();
   consume(Scanner::TokenType::SEMICOLON, "Expected ';' at end of statement");
   return s;
@@ -442,8 +441,9 @@ public:
     std::cout << "single_expr" << std::endl;
   }
   void visitStmt(const Stmt *s) override {
-    //
-    std::cout << "(stmt " << s->info << ")";
+    std::cout << "(stmt ";
+    std::cout << s->info;
+    std::cout << ")";
   }
   void visitStmts(const Stmts *s) override {
     // std::cout << "NOT_IMPLEMENTED" << std::endl;
@@ -475,12 +475,23 @@ public:
   }
 };
 
+// TODO implement factory
+// https://stackoverflow.com/questions/1883862/c-oop-list-of-classes-class-types-and-creating-instances-of-them
 void pprint(Stmts ss) {
   PrintWalker pw = PrintWalker();
   for (Stmt s : ss.stmts) {
     s.accept(&pw);
     std::cout << std::endl;
   }
+
+  Assign a = Assign(parser.previous, Expr());
+  Print p = Print();
+  std::cout << "TEST: ";
+  a.accept(&pw);
+  std::cout << std::endl;
+  std::cout << "TEST: ";
+  p.accept(&pw);
+  std::cout << std::endl;
 }
 
 bool parse(const std::string source) {
