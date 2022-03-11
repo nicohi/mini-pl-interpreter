@@ -175,6 +175,8 @@ Token scanToken() {
     return makeToken(TokenType::ASTERISK);
   case '=':
     return makeToken(TokenType::EQUAL);
+  case '<':
+    return makeToken(TokenType::LESS);
   case '&':
     return makeToken(TokenType::AND);
   case '!':

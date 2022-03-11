@@ -14,6 +14,7 @@ namespace Scanner {
   F(PLUS, "+")                                                                 \
   F(SLASH, "/")                                                                \
   F(ASTERISK, "*")                                                             \
+  F(LESS, "<")                                                                 \
   F(EQUAL, "=")                                                                \
   F(AND, "&")                                                                  \
   F(NOT, "!")                                                                  \
