@@ -132,12 +132,13 @@ class Stmt : public TreeNode {
 public:
   std::string info;
   Stmt() { info = "dummy statement"; }
-  void accept(TreeWalker *t) const override { t->visitStmt(this); };
+  // void accept(TreeWalker *t) { t->visitStmt(this); };
+  void accept(TreeWalker *t);
 };
 class Stmts : public TreeNode {
 public:
-  std::list<Stmt> stmts;
-  void append(Stmt s) { stmts.push_back(s); }
+  std::list<Stmt *> stmts;
+  void append(Stmt *s) { stmts.push_back(s); }
   void accept(TreeWalker *t) const override { t->visitStmts(this); };
 };
 class Var : public Stmt {
@@ -146,7 +147,8 @@ public:
   Scanner::Token type;
   Expr expr;
   Var() { info = "Var"; }
-  void accept(TreeWalker *t) const override { t->visitVar(this); };
+  // void accept(TreeWalker *t) const override { t->visitVar(this); };
+  void accept(TreeWalker *t);
 };
 class Assign : public Stmt {
 public:
@@ -199,7 +201,38 @@ public:
   void accept(TreeWalker *t) const override { t->visitAssert(this); };
 };
 
-Stmts program;
+void Stmt::accept(TreeWalker *t) { t->visitStmt(this); }
+void Var::accept(TreeWalker *t) { t->visitStmt(this); }
+
+class TreeNodeFactory {
+public:
+  TreeNode *CreateInstance();
+};
+template <class T> class Factory : public TreeNodeFactory {
+public:
+  TreeNode *CreateInstance() { return new T(); }
+};
+std::map<std::string, TreeNodeFactory *> fs;
+static void init() {
+  fs["Opnd"] = new Factory<Opnd>();
+  fs["Int"] = new Factory<Int>();
+  fs["String"] = new Factory<String>();
+  fs["Ident"] = new Factory<Ident>();
+  fs["Expr"] = new Factory<Expr>();
+  fs["Binary"] = new Factory<Binary>();
+  fs["Unary"] = new Factory<Unary>();
+  fs["Single"] = new Factory<Single>();
+  fs["Stmt"] = new Factory<Stmt>();
+  fs["Stmts"] = new Factory<Stmts>();
+  fs["Var"] = new Factory<Var>();
+  fs["Assign"] = new Factory<Assign>();
+  fs["For"] = new Factory<For>();
+  fs["Read"] = new Factory<Read>();
+  fs["Print"] = new Factory<Print>();
+  fs["Assert"] = new Factory<Assert>();
+  parser.hadError = false;
+  parser.panicMode = false;
+}
 
 static void printCurrent(std::string msg) {
   std::cout << msg << Scanner::getName(parser.current) << std::endl;
@@ -371,23 +404,35 @@ static For forLoop() {
   return For(id, from, to, body);
 }
 
-static Stmt statement() {
-  Stmt s = Stmt();
+static Stmt *statement() {
+  Stmt *s = new Stmt();
   if (isCurrent(Scanner::TokenType::COMMENT)) {
     advance();
     return statement();
   } else if (isCurrent(Scanner::TokenType::VAR)) {
-    s = var();
+    Var v = var();
+    s = &v;
+    // s = &var();
   } else if (isCurrent(Scanner::TokenType::IDENTIFIER)) {
-    s = assign();
+    Assign v = assign();
+    s = &v;
+    // s = &assign();
   } else if (isCurrent(Scanner::TokenType::FOR)) {
-    s = forLoop();
+    For v = forLoop();
+    s = &v;
+    // s = &forLoop();
   } else if (isCurrent(Scanner::TokenType::READ)) {
-    s = read();
+    Read v = read();
+    s = &v;
+    // s = &read();
   } else if (isCurrent(Scanner::TokenType::PRINT)) {
-    s = print();
+    Print v = print();
+    s = &v;
+    // s = &print();
   } else if (isCurrent(Scanner::TokenType::ASSERT)) {
-    s = assert();
+    Assert v = assert();
+    s = &v;
+    // s = &assert();
   } else
     exitPanic();
   consume(Scanner::TokenType::SEMICOLON, "Expected ';' at end of statement");
@@ -479,8 +524,9 @@ public:
 // https://stackoverflow.com/questions/1883862/c-oop-list-of-classes-class-types-and-creating-instances-of-them
 void pprint(Stmts ss) {
   PrintWalker pw = PrintWalker();
-  for (Stmt s : ss.stmts) {
-    s.accept(&pw);
+  for (Stmt *s : ss.stmts) {
+    std::cout << s->info << std::endl;
+    s->accept(&pw);
     std::cout << std::endl;
   }
 
@@ -496,8 +542,7 @@ void pprint(Stmts ss) {
 
 bool parse(const std::string source) {
   Scanner::init(source);
-  parser.hadError = false;
-  parser.panicMode = false;
+  init();
   advance();
   Stmts ss = statements();
   consume(Scanner::TokenType::SCAN_EOF, "");
