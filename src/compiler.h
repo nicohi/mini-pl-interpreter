@@ -5,7 +5,8 @@
 
 namespace Compiler {
 
-void compile(const std::string source);
+void runScanner(const std::string source);
+void runParser(const std::string source);
 
 } // namespace Compiler
 

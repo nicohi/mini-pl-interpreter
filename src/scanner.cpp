@@ -40,7 +40,7 @@ static Token makeToken(TokenType type) {
   return t;
 }
 
-static Token errorToken(const char *msg) {
+Token errorToken(const char *msg) {
   Token t = makeToken(TokenType::ERROR);
   t.message = msg;
   return t;

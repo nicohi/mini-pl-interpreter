@@ -56,6 +56,7 @@ struct Token {
 void init(const std::string source);
 std::string getName(Token t);
 Token scanToken();
+Token errorToken(const char *msg);
 
 } // namespace Scanner
 

@@ -6,7 +6,8 @@ namespace Interpreter {
 
 InterpretResult interpret(const std::string source) {
   try {
-    Compiler::compile(source);
+    Compiler::runScanner(source);
+    Compiler::runParser(source);
   } catch (int e) {
     return InterpretResult::COMPILE_ERROR;
   }

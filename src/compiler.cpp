@@ -1,9 +1,11 @@
 #include "compiler.h"
+#include "parser.h"
 #include "scanner.h"
-#include <cstdio>
 
 namespace Compiler {
-void compile(const std::string source) {
+
+// Runs only the scanner and prints to stdout
+void runScanner(const std::string source) {
   Scanner::init(source);
   int line = -1;
   for (;;) {
@@ -21,4 +23,6 @@ void compile(const std::string source) {
       break;
   }
 }
+
+void runParser(const std::string source) { Parser::parse(source); }
 } // namespace Compiler
