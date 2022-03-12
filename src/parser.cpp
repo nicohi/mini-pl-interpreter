@@ -74,105 +74,106 @@ public:
 
 class TreeNode {
 public:
-  virtual void accept(TreeWalker *t) const = 0;
+  virtual void accept(TreeWalker *t) = 0;
+  std::string hello() { return "HELLO\n"; }
 };
 
 class Opnd : public TreeNode {
 public:
-  void accept(TreeWalker *t) const override { t->visitOpnd(this); };
+  void accept(TreeWalker *t) override { t->visitOpnd(this); };
 };
 class Int : public Opnd {
 public:
   Scanner::Token value;
   Int(Scanner::Token v) { this->value = v; }
-  void accept(TreeWalker *t) const override { t->visitInt(this); };
+  void accept(TreeWalker *t) override { t->visitInt(this); };
 };
 class String : public Opnd {
 public:
   Scanner::Token value;
   String(Scanner::Token v) { this->value = v; }
-  void accept(TreeWalker *t) const override { t->visitString(this); };
+  void accept(TreeWalker *t) override { t->visitString(this); };
 };
 class Ident : public Opnd {
 public:
   Scanner::Token ident;
   Ident(Scanner::Token v) { this->ident = v; }
-  void accept(TreeWalker *t) const override { t->visitIdent(this); };
+  void accept(TreeWalker *t) override { t->visitIdent(this); };
 };
 class Expr : public Opnd {
 public:
   Opnd *left;
   Scanner::Token op;
   Opnd *right;
-  void accept(TreeWalker *t) const override { t->visitExpr(this); };
+  void accept(TreeWalker *t) override { t->visitExpr(this); };
 };
 class Binary : public Expr {
 public:
-  Binary(Parser::Opnd left, Scanner::Token op, Parser::Opnd right) {
-    this->left = &left;
+  Binary(Parser::Opnd *left, Scanner::Token op, Parser::Opnd *right) {
+    this->left = left;
     this->op = op;
-    this->right = &right;
+    this->right = right;
   }
-  void accept(TreeWalker *t) const override { t->visitBinary(this); };
+  void accept(TreeWalker *t) override { t->visitBinary(this); };
 };
 class Unary : public Expr {
 public:
-  Unary(Scanner::Token op, Parser::Opnd right) {
+  Unary(Scanner::Token op, Parser::Opnd *right) {
     this->op = op;
-    this->right = &right;
+    this->right = right;
   }
-  void accept(TreeWalker *t) const override { t->visitUnary(this); };
+  void accept(TreeWalker *t) override { t->visitUnary(this); };
 };
 class Single : public Expr {
 public:
-  Single(Parser::Opnd right) { this->right = &right; }
-  void accept(TreeWalker *t) const override { t->visitSingle(this); };
+  Single(Parser::Opnd *right) { this->right = right; }
+  void accept(TreeWalker *t) override { t->visitSingle(this); };
 };
 class Stmt : public TreeNode {
 public:
   std::string info;
   Stmt() { info = "dummy statement"; }
-  void accept(TreeWalker *t) const override { t->visitStmt(this); };
+  void accept(TreeWalker *t) override { t->visitStmt(this); };
 };
 class Stmts : public TreeNode {
 public:
-  std::list<Stmt> stmts;
-  void append(Stmt s) { stmts.push_back(s); }
-  void accept(TreeWalker *t) const override { t->visitStmts(this); };
+  std::list<TreeNode *> stmts;
+  void append(Stmt *s) { stmts.push_back(s); }
+  void accept(TreeWalker *t) override { t->visitStmts(this); };
 };
 class Var : public Stmt {
 public:
   Scanner::Token ident;
   Scanner::Token type;
-  Expr expr;
+  Expr *expr;
   Var() { info = "Var"; }
-  void accept(TreeWalker *t) const override { t->visitVar(this); };
+  void accept(TreeWalker *t) override { t->visitVar(this); };
 };
 class Assign : public Stmt {
 public:
   Scanner::Token ident;
-  Expr expr;
-  Assign(Scanner::Token id, Parser::Expr e) {
+  Expr *expr;
+  Assign(Scanner::Token id, Parser::Expr *e) {
     this->ident = id;
     this->expr = e;
     info = "Assign";
   }
-  void accept(TreeWalker *t) const override { t->visitAssign(this); };
+  void accept(TreeWalker *t) override { t->visitAssign(this); };
 };
 class For : public Stmt {
 public:
   Scanner::Token ident;
-  Expr from;
-  Expr to;
-  Stmts body;
-  For(Scanner::Token id, Parser::Expr f, Parser::Expr t, Parser::Stmts b) {
+  Expr *from;
+  Expr *to;
+  Stmts *body;
+  For(Scanner::Token id, Parser::Expr *f, Parser::Expr *t, Parser::Stmts *b) {
     this->ident = id;
     this->from = f;
     this->to = t;
     this->body = b;
     info = "For";
   }
-  void accept(TreeWalker *t) const override { t->visitFor(this); };
+  void accept(TreeWalker *t) override { t->visitFor(this); };
 };
 class Read : public Stmt {
 public:
@@ -181,22 +182,22 @@ public:
     this->ident = i;
     info = "Read";
   }
-  void accept(TreeWalker *t) const override { t->visitRead(this); };
+  void accept(TreeWalker *t) override { t->visitRead(this); };
 };
 class Print : public Stmt {
 public:
-  Expr expr;
+  Expr *expr;
   Print() { info = "Print"; }
-  void accept(TreeWalker *t) const override { t->visitPrint(this); };
+  void accept(TreeWalker *t) override { t->visitPrint(this); };
 };
 class Assert : public Stmt {
 public:
-  Expr expr;
-  Assert(Parser::Expr e) {
+  Expr *expr;
+  Assert(Parser::Expr *e) {
     this->expr = e;
     info = "Assert";
   }
-  void accept(TreeWalker *t) const override { t->visitAssert(this); };
+  void accept(TreeWalker *t) override { t->visitAssert(this); };
 };
 
 Stmts program;
@@ -271,108 +272,108 @@ static bool isType() {
          isCurrent(Scanner::TokenType::STRING) ||
          isCurrent(Scanner::TokenType::BOOL);
 }
-static Expr expression();
+static Expr *expression();
 
-static Opnd operand() {
+static Opnd *operand() {
   if (isCurrent(Scanner::TokenType::INTEGER_LIT)) {
     advance();
-    return Int(parser.previous);
+    return new Int(parser.previous);
   }
   if (isCurrent(Scanner::TokenType::STRING_LIT)) {
     advance();
-    return String(parser.previous);
+    return new String(parser.previous);
   }
   if (isCurrent(Scanner::TokenType::IDENTIFIER)) {
     advance();
-    return Ident(parser.previous);
+    return new Ident(parser.previous);
   }
   consume(Scanner::TokenType::LEFT_PAREN,
           "Expected literal, identifier, or '('");
-  Expr e = expression();
+  Expr *e = expression();
   consume(Scanner::TokenType::RIGHT_PAREN, "Expected ')'");
   return e;
 }
 
-static Expr expression() {
+static Expr *expression() {
   if (isUnaryOp()) {
     advance();
-    return Unary(parser.previous, operand());
+    return new Unary(parser.previous, operand());
   }
-  Opnd left = operand();
+  Opnd *left = operand();
   if (isBinaryOp()) {
     advance();
-    return Binary(left, parser.previous, operand());
+    return new Binary(left, parser.previous, operand());
   } else
-    return Single(left);
+    return new Single(left);
 }
 
-static Var var() {
+static Var *var() {
   advance();
-  Var v = Var();
+  Var *v = new Var();
   consume(Scanner::TokenType::IDENTIFIER, "Expected an identifier after 'var'");
-  v.ident = parser.previous;
+  v->ident = parser.previous;
   consume(Scanner::TokenType::COLON, "Expected an ':' after identifier");
   if (isType()) {
-    v.type = parser.current;
+    v->type = parser.current;
     advance();
   } else {
     errorAt(parser.current, "Expected type after ':'");
   }
   if (isCurrent(Scanner::TokenType::ASSIGN)) {
     advance();
-    v.expr = expression();
+    v->expr = expression();
   }
   return v;
 }
 
-static Assign assign() {
+static Assign *assign() {
   advance();
   Scanner::Token id = parser.previous;
   consume(Scanner::TokenType::ASSIGN, "Expected ':=' after identifier");
-  Expr e = expression();
-  return Assign(id, e);
+  Expr *e = expression();
+  return new Assign(id, e);
 }
 
-static Print print() {
+static Print *print() {
   advance();
-  Print p = Print();
-  p.expr = expression();
+  Print *p = new Print();
+  p->expr = expression();
   return p;
 }
 
-static Read read() {
+static Read *read() {
   advance();
   consume(Scanner::TokenType::IDENTIFIER, "Expected identifier after read");
-  return Read(parser.previous);
+  return new Read(parser.previous);
 }
 
-static Assert assert() {
+static Assert *assert() {
   advance();
   consume(Scanner::TokenType::LEFT_PAREN, "Expected '(' after assert");
-  Expr e = expression();
+  Expr *e = expression();
   consume(Scanner::TokenType::RIGHT_PAREN,
           "Expected ')' after assert expression");
-  return Assert(e);
+  return new Assert(e);
 }
 
-static Stmts statements();
-static For forLoop() {
+static Stmts *statements();
+static For *forLoop() {
   advance();
   consume(Scanner::TokenType::IDENTIFIER, "Expected identifier after for");
   Scanner::Token id = parser.previous;
   consume(Scanner::TokenType::IN, "Expected 'in' after identifier");
-  Expr from = expression();
+  Expr *from = expression();
   consume(Scanner::TokenType::RANGE, "Expected '..' after expression");
-  Expr to = expression();
+  Expr *to = expression();
   consume(Scanner::TokenType::DO, "Expected 'do' after expression");
-  Stmts body = statements();
+  Stmts *body = statements();
   consume(Scanner::TokenType::END, "Expected 'end' after loop body");
   consume(Scanner::TokenType::FOR, "Expected 'for' after end");
-  return For(id, from, to, body);
+  return new For(id, from, to, body);
 }
 
-static Stmt statement() {
-  Stmt s = Stmt();
+static Stmt *statement() {
+  Stmt *s = new Stmt();
   if (isCurrent(Scanner::TokenType::COMMENT)) {
     advance();
     return statement();
@@ -393,52 +394,53 @@ static Stmt statement() {
   consume(Scanner::TokenType::SEMICOLON, "Expected ';' at end of statement");
   return s;
 }
-static Stmts statements() {
-  Stmts s;
+static Stmts *statements() {
+  Stmts *s = new Stmts();
   for (;;) {
     if (isCurrent(Scanner::TokenType::SCAN_EOF) ||
         isCurrent(Scanner::TokenType::END))
       return s;
     // std::cout << "Parsing statement at: " << Scanner::getName(parser.current)
     // << std::endl;
-    s.append(statement());
+    s->append(statement());
   }
   return s;
 }
 
 class PrintWalker : public TreeWalker {
 public:
+  void printToken(Scanner::Token t) { printf("%.*s", t.length, t.start); }
   void visitOpnd(const Opnd *i) override {
     // std::cout << "NOT_IMPLEMENTED" << std::endl;
     std::cout << "opnd" << std::endl;
   }
-  void visitInt(const Int *i) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "int" << std::endl;
-  }
-  void visitString(const String *s) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "string" << std::endl;
-  }
-  void visitIdent(const Ident *i) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "ident" << std::endl;
-  }
+  void visitInt(const Int *i) override { printToken(i->value); }
+  void visitString(const String *s) override { printToken(s->value); }
+  void visitIdent(const Ident *i) override { printToken(i->ident); }
   void visitExpr(const Expr *e) override {
     // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "expr" << std::endl;
+    std::cout << "DUMMYEXPR";
   }
   void visitBinary(const Binary *b) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "binary_expr" << std::endl;
+    std::cout << "(";
+    b->left->accept(this);
+    std::cout << " ";
+    printToken(b->op);
+    std::cout << " ";
+    b->right->accept(this);
+    std::cout << ")";
   }
   void visitUnary(const Unary *u) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "unary_expr" << std::endl;
+    std::cout << "(";
+    printToken(u->op);
+    std::cout << " ";
+    u->right->accept(this);
+    std::cout << ")";
   }
   void visitSingle(const Single *s) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "single_expr" << std::endl;
+    std::cout << "(";
+    s->right->accept(this);
+    std::cout << ")";
   }
   void visitStmt(const Stmt *s) override {
     std::cout << "(stmt ";
@@ -450,8 +452,14 @@ public:
     std::cout << "stmts" << std::endl;
   }
   void visitVar(const Var *v) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "var" << std::endl;
+    std::cout << "var ident:";
+    printToken(v->ident);
+    std::cout << " ";
+    std::cout << "type:" << Scanner::getName(v->type) << " ";
+    if (v->expr) {
+      std::cout << "expr:";
+      v->expr->accept(this);
+    }
   }
   void visitAssign(const Assign *a) override {
     // std::cout << "NOT_IMPLEMENTED" << std::endl;
@@ -462,36 +470,42 @@ public:
     std::cout << "for" << std::endl;
   }
   void visitRead(const Read *r) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "read" << std::endl;
+    std::cout << "read expr:";
+    printToken(r->ident);
   }
   void visitPrint(const Print *p) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "print" << std::endl;
+    std::cout << "print expr:";
+    p->expr->accept(this);
   }
   void visitAssert(const Assert *a) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "assert" << std::endl;
+    std::cout << "assert expr=";
+    a->expr->accept(this);
   }
 };
 
-// TODO implement factory
-// https://stackoverflow.com/questions/1883862/c-oop-list-of-classes-class-types-and-creating-instances-of-them
-void pprint(Stmts ss) {
+void pprint(Stmts *ss) {
   PrintWalker pw = PrintWalker();
-  for (Stmt s : ss.stmts) {
-    s.accept(&pw);
+  // std::cout << "FIRST STMT:" << ss->stmts.front() << "\n";
+  // std::cout << "LAST STMT:" << ss->stmts.back() << "\n";
+  for (TreeNode *s : ss->stmts) {
+    // std::cout << "ATTEMPTING ACCEPT:" << s << "\n";
+    s->accept(&pw);
     std::cout << std::endl;
   }
 
-  Assign a = Assign(parser.previous, Expr());
-  Print p = Print();
-  std::cout << "TEST: ";
-  a.accept(&pw);
-  std::cout << std::endl;
-  std::cout << "TEST: ";
-  p.accept(&pw);
-  std::cout << std::endl;
+  //   Assign *a = new Assign(parser.previous, new Expr());
+  //   Print *p = new Print();
+  //   std::cout << "TEST: ";
+  //   a->accept(&pw);
+  //   std::cout << std::endl;
+  //   std::cout << "TEST: ";
+  //   p->accept(&pw);
+  //   std::cout << std::endl;
+  //   std::list<TreeNode *> test = {a, p};
+  //   for (TreeNode *s : test) {
+  //     s->accept(&pw);
+  //     std::cout << std::endl;
+  //   }
 }
 
 bool parse(const std::string source) {
@@ -499,7 +513,7 @@ bool parse(const std::string source) {
   parser.hadError = false;
   parser.panicMode = false;
   advance();
-  Stmts ss = statements();
+  Stmts *ss = statements();
   consume(Scanner::TokenType::SCAN_EOF, "");
   pprint(ss);
   return !parser.hadError;
