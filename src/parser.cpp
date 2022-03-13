@@ -410,17 +410,11 @@ static Stmts *statements() {
 class PrintWalker : public TreeWalker {
 public:
   void printToken(Scanner::Token t) { printf("%.*s", t.length, t.start); }
-  void visitOpnd(const Opnd *i) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "opnd" << std::endl;
-  }
+  void visitOpnd(const Opnd *i) override { std::cout << "DUMMYOPND"; }
   void visitInt(const Int *i) override { printToken(i->value); }
   void visitString(const String *s) override { printToken(s->value); }
   void visitIdent(const Ident *i) override { printToken(i->ident); }
-  void visitExpr(const Expr *e) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "DUMMYEXPR";
-  }
+  void visitExpr(const Expr *e) override { std::cout << "DUMMYEXPR"; }
   void visitBinary(const Binary *b) override {
     std::cout << "(";
     b->left->accept(this);
@@ -448,8 +442,10 @@ public:
     std::cout << ")";
   }
   void visitStmts(const Stmts *s) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "stmts" << std::endl;
+    for (TreeNode *n : s->stmts) {
+      n->accept(this);
+      std::cout << std::endl;
+    }
   }
   void visitVar(const Var *v) override {
     std::cout << "var ident:";
@@ -462,12 +458,22 @@ public:
     }
   }
   void visitAssign(const Assign *a) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "assign" << std::endl;
+    std::cout << "assign ident:";
+    printToken(a->ident);
+    std::cout << " expr:";
+    a->expr->accept(this);
   }
   void visitFor(const For *f) override {
-    // std::cout << "NOT_IMPLEMENTED" << std::endl;
-    std::cout << "for" << std::endl;
+    std::cout << "for ";
+    std::cout << "ident:";
+    printToken(f->ident);
+    std::cout << " from:";
+    f->from->accept(this);
+    std::cout << " to:";
+    f->to->accept(this);
+    std::cout << " body:\n";
+    f->body->accept(this);
+    std::cout << "end for";
   }
   void visitRead(const Read *r) override {
     std::cout << "read expr:";
@@ -478,34 +484,14 @@ public:
     p->expr->accept(this);
   }
   void visitAssert(const Assert *a) override {
-    std::cout << "assert expr=";
+    std::cout << "assert expr:";
     a->expr->accept(this);
   }
 };
 
 void pprint(Stmts *ss) {
-  PrintWalker pw = PrintWalker();
-  // std::cout << "FIRST STMT:" << ss->stmts.front() << "\n";
-  // std::cout << "LAST STMT:" << ss->stmts.back() << "\n";
-  for (TreeNode *s : ss->stmts) {
-    // std::cout << "ATTEMPTING ACCEPT:" << s << "\n";
-    s->accept(&pw);
-    std::cout << std::endl;
-  }
-
-  //   Assign *a = new Assign(parser.previous, new Expr());
-  //   Print *p = new Print();
-  //   std::cout << "TEST: ";
-  //   a->accept(&pw);
-  //   std::cout << std::endl;
-  //   std::cout << "TEST: ";
-  //   p->accept(&pw);
-  //   std::cout << std::endl;
-  //   std::list<TreeNode *> test = {a, p};
-  //   for (TreeNode *s : test) {
-  //     s->accept(&pw);
-  //     std::cout << std::endl;
-  //   }
+  PrintWalker *pw = new PrintWalker();
+  ss->accept(pw);
 }
 
 bool parse(const std::string source) {
