@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "compiler.h"
 #include <cstdio>
 #include <iostream>
 #include <map>
@@ -117,6 +118,10 @@ static Opnd *operand() {
     advance();
     return new String(parser.previous);
   }
+  if (isCurrent(Scanner::TokenType::BOOLEAN_LIT)) {
+    advance();
+    return new Bool(parser.previous);
+  }
   if (isCurrent(Scanner::TokenType::IDENTIFIER)) {
     advance();
     return new Ident(parser.previous);
@@ -136,7 +141,7 @@ static Expr *expression() {
   Opnd *left = operand();
   if (isBinaryOp()) {
     advance();
-    return new Binary(left, parser.previous, operand());
+    return new Binary(left, parser.previous, expression());
   } else
     return new Single(left);
 }
@@ -208,10 +213,7 @@ static For *forLoop() {
 
 static Stmt *statement() {
   Stmt *s = new Stmt();
-  if (isCurrent(Scanner::TokenType::COMMENT)) {
-    advance();
-    return statement();
-  } else if (isCurrent(Scanner::TokenType::VAR)) {
+  if (isCurrent(Scanner::TokenType::VAR)) {
     s = var();
   } else if (isCurrent(Scanner::TokenType::IDENTIFIER)) {
     s = assign();
@@ -231,6 +233,8 @@ static Stmt *statement() {
 static Stmts *statements() {
   Stmts *s = new Stmts();
   for (;;) {
+    if (isCurrent(Scanner::TokenType::COMMENT))
+      advance();
     if (isCurrent(Scanner::TokenType::SCAN_EOF) ||
         isCurrent(Scanner::TokenType::END))
       return s;
@@ -246,6 +250,7 @@ public:
   void printToken(Scanner::Token t) { printf("%.*s", t.length, t.start); }
   void visitOpnd(const Opnd *i) override { std::cout << "DUMMYOPND"; }
   void visitInt(const Int *i) override { printToken(i->value); }
+  void visitBool(const Bool *b) override { printToken(b->value); }
   void visitString(const String *s) override { printToken(s->value); }
   void visitIdent(const Ident *i) override { printToken(i->ident); }
   void visitExpr(const Expr *e) override { std::cout << "DUMMYEXPR"; }
@@ -339,6 +344,17 @@ bool parse(const std::string source) {
   return !parser.hadError;
 }
 
-Stmts *getProgram() { return program; }
+void parseAndWalk(const std::string source, TreeWalker *tw) {
+  Scanner::init(source);
+  parser.hadError = false;
+  parser.panicMode = false;
+  advance();
+  // Compiler::runScanner(source);
+  program = statements();
+  consume(Scanner::TokenType::SCAN_EOF, "");
+  // pprint(program);
+  if (!parser.hadError)
+    program->accept(tw);
+}
 
 } // namespace Parser

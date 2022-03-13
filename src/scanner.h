@@ -55,6 +55,7 @@ struct Token {
 
 void init(const std::string source);
 std::string getName(Token t);
+std::string getName(TokenType t);
 Token scanToken();
 Token errorToken(const char *msg);
 

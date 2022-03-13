@@ -27,6 +27,7 @@ void init(const std::string source) {
 }
 
 std::string getName(Token t) { return TokenName[static_cast<int>(t.type)]; }
+std::string getName(TokenType t) { return TokenName[static_cast<int>(t)]; }
 
 static bool isEnd() { return *scanner.current == '\0'; }
 
@@ -109,6 +110,11 @@ static bool gotoChar(char c) {
 
 static Token string() {
   while (peek() != '"' && !isEnd()) {
+    if (peek() == '\\') {
+      if (scanner.current[1] == '\"') {
+        advance();
+      }
+    }
     if (peek() == '\n')
       scanner.line++;
     advance();

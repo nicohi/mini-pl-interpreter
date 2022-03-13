@@ -9,6 +9,7 @@ namespace Parser {
 
 class Opnd;
 class Int;
+class Bool;
 class String;
 class Ident;
 class Expr;
@@ -27,6 +28,7 @@ class TreeWalker {
 public:
   virtual void visitOpnd(const Opnd *i) = 0;
   virtual void visitInt(const Int *i) = 0;
+  virtual void visitBool(const Bool *b) = 0;
   virtual void visitString(const String *s) = 0;
   virtual void visitIdent(const Ident *i) = 0;
   virtual void visitExpr(const Expr *e) = 0;
@@ -57,6 +59,12 @@ public:
   Scanner::Token value;
   Int(Scanner::Token v) { this->value = v; }
   void accept(TreeWalker *t) override { t->visitInt(this); };
+};
+class Bool : public Opnd {
+public:
+  Scanner::Token value;
+  Bool(Scanner::Token v) { this->value = v; }
+  void accept(TreeWalker *t) override { t->visitBool(this); };
 };
 class String : public Opnd {
 public:
@@ -171,6 +179,7 @@ public:
 };
 
 bool parse(const std::string source);
+void parseAndWalk(const std::string source, TreeWalker *tw);
 
 Stmts *getProgram();
 
