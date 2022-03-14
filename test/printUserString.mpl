@@ -5,4 +5,5 @@ print "You wrote: \"";
 print s;
 print "\"\n";
 assert (false);
-//sdkjaldskajdlkajsdkl
+/*
+*/

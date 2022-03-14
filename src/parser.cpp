@@ -233,8 +233,13 @@ static Stmt *statement() {
 static Stmts *statements() {
   Stmts *s = new Stmts();
   for (;;) {
-    if (isCurrent(Scanner::TokenType::COMMENT))
+    if (isCurrent(Scanner::TokenType::COMMENT)) {
       advance();
+      continue;
+    }
+    if (isCurrent(Scanner::TokenType::ERROR)) {
+      errorAt(parser.current, parser.current.message);
+    }
     if (isCurrent(Scanner::TokenType::SCAN_EOF) ||
         isCurrent(Scanner::TokenType::END))
       return s;
@@ -287,7 +292,7 @@ public:
     }
   }
   void visitVar(const Var *v) override {
-    std::cout << "var ident:";
+    std::cout << "(var ident:";
     printToken(v->ident);
     std::cout << " ";
     std::cout << "type:" << Scanner::getName(v->type) << " ";
@@ -295,14 +300,18 @@ public:
       std::cout << "expr:";
       v->expr->accept(this);
     }
+    std::cout << ")";
   }
   void visitAssign(const Assign *a) override {
+    std::cout << "(";
     std::cout << "assign ident:";
     printToken(a->ident);
     std::cout << " expr:";
     a->expr->accept(this);
+    std::cout << ")";
   }
   void visitFor(const For *f) override {
+    std::cout << "(";
     std::cout << "for ";
     std::cout << "ident:";
     printToken(f->ident);
@@ -313,18 +322,25 @@ public:
     std::cout << " body:\n";
     f->body->accept(this);
     std::cout << "end for";
+    std::cout << ")";
   }
   void visitRead(const Read *r) override {
+    std::cout << "(";
     std::cout << "read expr:";
     printToken(r->ident);
+    std::cout << ")";
   }
   void visitPrint(const Print *p) override {
+    std::cout << "(";
     std::cout << "print expr:";
     p->expr->accept(this);
+    std::cout << ")";
   }
   void visitAssert(const Assert *a) override {
+    std::cout << "(";
     std::cout << "assert expr:";
     a->expr->accept(this);
+    std::cout << ")";
   }
 };
 

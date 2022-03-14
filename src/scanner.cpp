@@ -169,10 +169,6 @@ Token scanToken() {
     return makeToken(TokenType::LEFT_PAREN);
   case ')':
     return makeToken(TokenType::RIGHT_PAREN);
-  case '[':
-    return makeToken(TokenType::LEFT_BRACE);
-  case ']':
-    return makeToken(TokenType::RIGHT_BRACE);
   case '-':
     return makeToken(TokenType::MINUS);
   case '+':
