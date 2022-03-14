@@ -86,8 +86,8 @@ static void exitPanic() {
     std::cout << "Skipping token:" << Scanner::getName(parser.current)
               << std::endl;
     advance();
-    parser.panicMode = false;
   }
+  parser.panicMode = false;
 }
 
 static bool isBinaryOp() {
@@ -239,10 +239,13 @@ static Stmts *statements() {
     }
     if (isCurrent(Scanner::TokenType::ERROR)) {
       errorAt(parser.current, parser.current.message);
+      exitPanic();
+      continue;
     }
     if (isCurrent(Scanner::TokenType::SCAN_EOF) ||
-        isCurrent(Scanner::TokenType::END))
+        isCurrent(Scanner::TokenType::END)) {
       return s;
+    }
     // std::cout << "Parsing statement at: " << Scanner::getName(parser.current)
     // << std::endl;
     s->append(statement());
@@ -286,10 +289,12 @@ public:
     std::cout << ")";
   }
   void visitStmts(const Stmts *s) override {
+    std::cout << "(stmts\n";
     for (TreeNode *n : s->stmts) {
       n->accept(this);
       std::cout << std::endl;
     }
+    std::cout << ")\n";
   }
   void visitVar(const Var *v) override {
     std::cout << "(var ident:";
@@ -365,10 +370,8 @@ void parseAndWalk(const std::string source, TreeWalker *tw) {
   parser.hadError = false;
   parser.panicMode = false;
   advance();
-  // Compiler::runScanner(source);
   program = statements();
   consume(Scanner::TokenType::SCAN_EOF, "");
-  // pprint(program);
   if (!parser.hadError)
     program->accept(tw);
 }

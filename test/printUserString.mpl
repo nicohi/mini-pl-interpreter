@@ -1,9 +1,6 @@
 var s : string;
 print "Write something: ";
 read s;
-print "You wrote: \"";
+print "You wrote: ";
 print s;
-print "\"\n";
-assert (false);
-/*
-*/
+print "\n";
